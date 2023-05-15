@@ -17,6 +17,7 @@ namespace SerilogImplementing.Controllers
         public ValuesController(ILogger<ValuesController> logger)
         {
             _logger = logger;
+
             str = GenerateRandomString(10000);
         }
         [HttpGet]
