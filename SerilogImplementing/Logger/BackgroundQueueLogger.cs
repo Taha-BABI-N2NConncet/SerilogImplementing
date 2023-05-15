@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Threading;
 
@@ -23,14 +24,8 @@ namespace SerilogImplementing.Logger
         }
         public static void AddLoggingTaskToQueue(logMethod logMethod) 
         {
-            Expression<logMethod> expression = Expression.Lambda<logMethod>
-            (Expression.Call(
-                Expression.Constant(logMethod.Target),
-                logMethod.Method
-            ));
-            loggingQueue.Enqueue(expression.Compile());
+            loggingQueue.Enqueue(logMethod);
             manualReset.Set();
-
         }
         private static void ProcessLogging(object obj)
         {
@@ -38,7 +33,8 @@ namespace SerilogImplementing.Logger
             {
                 try
                 {
-                    logMethod logMethod;
+                    logMethod variable;
+                    //logMethod logMethod;
                     int lCount = loggingQueue.Count;
                     if (lCount > 0)
                     {
@@ -46,10 +42,10 @@ namespace SerilogImplementing.Logger
                         {
                             for (int i = 0; i < lCount; i++)
                             {
-                                var lSuccess = loggingQueue.TryDequeue(out logMethod);
+                                var lSuccess = loggingQueue.TryDequeue(out variable);
                                 if (lSuccess)
                                 {
-                                    logMethod.Invoke();
+                                   variable.Invoke();
                                 }
                             }
                         }
@@ -59,7 +55,7 @@ namespace SerilogImplementing.Logger
                 }
                 catch (Exception ex)
                 {
-                    //m_ATPLogger?.Fatal($"ProcessNewAckMsgRecv, {ex.Message}");
+                    Console.WriteLine($"ProcessNewAckMsgRecv, {ex.Message}");
                 }
             }
         }
